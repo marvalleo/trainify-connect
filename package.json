@@ -1,0 +1,12 @@
+{
+    "name": "trainify-connect-pro",
+    "version": "1.0.0",
+    "description": "Tracker avanzado de entrenamiento con sincronización cloud.",
+    "main": "index.html",
+    "scripts": {
+        "dev": "npx -y serve . -p 3000"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC"
+}
