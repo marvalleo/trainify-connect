@@ -106,62 +106,62 @@ window.renderExercises = function () {
                     <h3 class="font-bold text-lg text-slate-100">${ex.name}</h3>
                     <div class="flex gap-1.5 mt-2">
                         ${seriesHTML}
-                        ${setsToday > 4 ?\`<span class="text-green-500 text-[10px] self-center ml-1">+\${setsToday - 4}</span>\` : ''}
+                        ${setsToday > 4 ? `<span class="text-green-500 text-[10px] self-center ml-1">+${setsToday - 4}</span>` : ''}
                     </div>
                 </div>
                 <div class="flex gap-1">
-                    <button onclick="triggerPhoto(\${ex.id})" class="text-slate-400 p-2 hover:text-purple-400 transition-colors" title="Subir foto de la máquina"><i class="fas fa-camera"></i></button>
-                    <button onclick="toggleChart(\${ex.id})" class="text-blue-400 p-2"><i class="fas fa-chart-area"></i></button>
-                    <button onclick="deleteExercise('\${currentCategory}', \${ex.id})" class="text-slate-600 p-2"><i class="fas fa-trash"></i></button>
+                    <button onclick="triggerPhoto(${ex.id})" class="text-slate-400 p-2 hover:text-purple-400 transition-colors" title="Subir foto de la máquina"><i class="fas fa-camera"></i></button>
+                    <button onclick="toggleChart(${ex.id})" class="text-blue-400 p-2"><i class="fas fa-chart-area"></i></button>
+                    <button onclick="deleteExercise('${currentCategory}', ${ex.id})" class="text-slate-600 p-2"><i class="fas fa-trash"></i></button>
                 </div>
             </div>
 
-            \${ex.coachNote ? \`
+            ${ex.coachNote ? `
             <div class="mt-3 p-3 bg-yellow-500/10 border-l-4 border-yellow-500 rounded-r-lg animate-fadeIn">
                 <p class="text-[10px] font-black text-yellow-500 uppercase tracking-widest mb-1"><i class="fas fa-exclamation-triangle mr-1"></i> Instrucción Técnica</p>
-                <p class="text-xs text-yellow-100/80 italic">"\${ex.coachNote}"</p>
-            </div>\` : ''}
+                <p class="text-xs text-yellow-100/80 italic">"${ex.coachNote}"</p>
+            </div>` : ''}
             
             <div class="flex items-center gap-2 mb-3 mt-3">
-                <span onclick="copyLastRecord(\${ex.id})" title="Copiar valores anteriores" class="text-[10px] text-slate-500 uppercase tracking-tighter cursor-pointer hover:text-blue-400 transition-colors">
-                    \${last.date ? \`<i class="fas fa-calendar-day mr-1"></i>Último: \${last.date} (\${last.kg}kg x \${last.reps}) <i class="fas fa-copy ml-1"></i>\` : 'Sin registros'}
+                <span onclick="copyLastRecord(${ex.id})" title="Copiar valores anteriores" class="text-[10px] text-slate-500 uppercase tracking-tighter cursor-pointer hover:text-blue-400 transition-colors">
+                    ${last.date ? `<i class="fas fa-calendar-day mr-1"></i>Último: ${last.date} (${last.kg}kg x ${last.reps}) <i class="fas fa-copy ml-1"></i>` : 'Sin registros'}
                 </span>
             </div>
 
-            <input type="file" id="photo-input-\${ex.id}" class="hidden" accept="image/*" onchange="savePhoto(event, \${ex.id})">
+            <input type="file" id="photo-input-${ex.id}" class="hidden" accept="image/*" onchange="savePhoto(event, ${ex.id})">
 
-            \${exercises.photos && exercises.photos[ex.id] ? \`
+            ${exercises.photos && exercises.photos[ex.id] ? `
             <div class="mb-4 rounded-xl overflow-hidden border border-slate-700 aspect-video relative group animate-fadeIn shadow-2xl">
-                <img src="\${exercises.photos[ex.id]}" class="w-full h-full object-cover">
+                <img src="${exercises.photos[ex.id]}" class="w-full h-full object-cover">
                 <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent opacity-0 group-hover:opacity-100 flex items-end justify-center p-4 transition-opacity">
-                    <button onclick="triggerPhoto(\${ex.id})" class="text-white text-[9px] bg-slate-800/90 backdrop-blur-md border border-slate-600 px-4 py-2 rounded-full uppercase font-black tracking-tighter">Actualizar Foto de Máquina</button>
+                    <button onclick="triggerPhoto(${ex.id})" class="text-white text-[9px] bg-slate-800/90 backdrop-blur-md border border-slate-600 px-4 py-2 rounded-full uppercase font-black tracking-tighter">Actualizar Foto de Máquina</button>
                 </div>
-            </div>\` : ''}
+            </div>` : ''}
 
-            <div id="chart-container-\${ex.id}" class="hidden mb-4 bg-slate-900/50 p-4 rounded-lg space-y-6">
+            <div id="chart-container-${ex.id}" class="hidden mb-4 bg-slate-900/50 p-4 rounded-lg space-y-6">
                 <div>
                     <p class="text-[10px] text-blue-400 font-bold mb-2 uppercase tracking-widest text-center">Progreso de Carga (Kg)</p>
-                    <canvas id="chart-\${ex.id}"></canvas>
+                    <canvas id="chart-${ex.id}"></canvas>
                 </div>
                 <div class="pt-4 border-t border-slate-800">
                     <p class="text-[10px] text-purple-400 font-bold mb-2 uppercase tracking-widest text-center">Volumen de Trabajo (Kg × Reps)</p>
-                    <canvas id="chart-vol-\${ex.id}"></canvas>
+                    <canvas id="chart-vol-${ex.id}"></canvas>
                 </div>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
                 <div class="relative">
                     <label class="block text-[10px] text-slate-500 mb-1 ml-1 uppercase">Kilos</label>
-                    <input type="number" id="kg-\${ex.id}" placeholder="\${last.kg || '---'}" class="w-full p-2 rounded input-log font-bold text-blue-400 placeholder-slate-600">
+                    <input type="number" id="kg-${ex.id}" placeholder="${last.kg || '---'}" class="w-full p-2 rounded input-log font-bold text-blue-400 placeholder-slate-600">
                 </div>
                 <div class="relative">
                     <label class="block text-[10px] text-slate-500 mb-1 ml-1 uppercase">Reps</label>
-                    <input type="number" id="reps-\${ex.id}" placeholder="\${last.reps || '---'}" class="w-full p-2 rounded input-log placeholder-slate-600">
+                    <input type="number" id="reps-${ex.id}" placeholder="${last.reps || '---'}" class="w-full p-2 rounded input-log placeholder-slate-600">
                 </div>
             </div>
             
-            <button onclick="saveSet(\${ex.id})" class="w-full mt-3 py-3 \${setsToday > 0 ? 'bg-green-900/20 text-green-400 border border-green-500/20' : 'bg-slate-800'} rounded-lg text-xs uppercase font-black tracking-widest hover:bg-blue-600 active:scale-95 transition-all">
-                \${setsToday > 0 ? \`Registrar Serie \${setsToday + 1}\` : 'Registrar Entrenamiento'}
+            <button onclick="saveSet(${ex.id})" class="w-full mt-3 py-3 ${setsToday > 0 ? 'bg-green-900/20 text-green-400 border border-green-500/20' : 'bg-slate-800'} rounded-lg text-xs uppercase font-black tracking-widest hover:bg-blue-600 active:scale-95 transition-all">
+                ${setsToday > 0 ? `Registrar Serie ${setsToday + 1}` : 'Registrar Entrenamiento'}
             </button>
         `;
         container.appendChild(card);
@@ -229,7 +229,8 @@ window.editNote = function (id, index) {
 }
 
 window.triggerPhoto = function (id) {
-    document.getElementById(`photo-input-${id}`).click();
+    const input = document.getElementById(`photo-input-${id}`);
+    if (input) input.click();
 }
 
 window.savePhoto = function (event, id) {
@@ -256,13 +257,13 @@ window.toggleChart = function (id) {
         const labels = data.map(d => {
             dateCounts[d.date] = (dateCounts[d.date] || 0) + 1;
             const parts = d.date.split('-');
-            const shortDate = parts.length > 2 ? `\${parts[2]}/\${parts[1]}` : d.date;
-            return `\${shortDate} S\${dateCounts[d.date]}`;
+            const shortDate = parts.length > 2 ? `${parts[2]}/${parts[1]}` : d.date;
+            return `${shortDate} S${dateCounts[d.date]}`;
         });
 
-        const ctxKg = document.getElementById(`chart-\${id}`).getContext('2d');
-        if (window[\`chart_kg_\${id}\`]) window[\`chart_kg_\${id}\`].destroy();
-        window[\`chart_kg_\${id}\`] = new Chart(ctxKg, {
+        const ctxKg = document.getElementById(`chart-${id}`).getContext('2d');
+        if (window[`chart_kg_${id}`]) window[`chart_kg_${id}`].destroy();
+        window[`chart_kg_${id}`] = new Chart(ctxKg, {
             type: 'line',
             data: {
                 labels: labels,
@@ -289,9 +290,9 @@ window.toggleChart = function (id) {
             }
         });
 
-        const ctxVol = document.getElementById(`chart - vol -\${ id } `).getContext('2d');
-        if (window[\`chart_vol_\${id}\`]) window[\`chart_vol_\${id}\`].destroy();
-        window[\`chart_vol_\${id}\`] = new Chart(ctxVol, {
+        const ctxVol = document.getElementById(`chart-vol-${id}`).getContext('2d');
+        if (window[`chart_vol_${id}`]) window[`chart_vol_${id}`].destroy();
+        window[`chart_vol_${id}`] = new Chart(ctxVol, {
             type: 'bar',
             data: {
                 labels: labels,
@@ -317,9 +318,9 @@ window.toggleChart = function (id) {
     }
 }
 
-window.changeCategory = function(cat) { currentCategory = cat; renderExercises(); }
+window.changeCategory = function (cat) { currentCategory = cat; renderExercises(); }
 
-window.addExercise = function() {
+window.addExercise = function () {
     const name = document.getElementById('new-ex-name').value;
     const cat = document.getElementById('new-ex-cat').value;
     if (!name) return;
@@ -329,7 +330,7 @@ window.addExercise = function() {
     renderExercises();
 }
 
-window.deleteExercise = function(cat, id) {
+window.deleteExercise = function (cat, id) {
     if (!confirm("¿Borrar este ejercicio?")) return;
     exercises[cat] = exercises[cat].filter(ex => ex.id !== id);
     delete records[id];
@@ -338,16 +339,16 @@ window.deleteExercise = function(cat, id) {
     renderExercises();
 }
 
-window.exportData = function() {
+window.exportData = function () {
     const data = { exercises, records };
     const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = \`trainify_backup.json\`;
+    a.download = `trainify_backup.json`;
     a.click();
 }
 
-window.importData = function(event) {
+window.importData = function (event) {
     const file = event.target.files[0];
     if (!file) return;
     const reader = new FileReader();
@@ -362,59 +363,63 @@ window.importData = function(event) {
     reader.readAsText(file);
 }
 
-window.calculateMacros = function() {
-    const w = parseFloat(document.getElementById('user-weight').value);
-    const g = document.getElementById('user-goal').value;
+window.calculateMacros = function () {
+    const wInput = document.getElementById('user-weight');
+    const gInput = document.getElementById('user-goal');
+    if (!wInput || !gInput) return;
+    const w = parseFloat(wInput.value);
+    const g = gInput.value;
     if (!w) return;
     let k = w * 30;
     if (g === 'cut') k -= 400; if (g === 'bulk') k += 300;
     const p = w * 2.2; const f = w * 0.8;
     const res = document.getElementById('macro-results');
     res.classList.remove('hidden');
-    res.innerHTML = \`
+    res.innerHTML = `
         <div class="card-gradient p-4 rounded-xl border border-slate-700 col-span-2 text-center animate-fadeIn">
             <p class="text-[10px] text-slate-400">TOTAL CALORÍAS</p>
-            <p class="text-3xl font-black text-blue-400">\${Math.round(k)}</p>
+            <p class="text-3xl font-black text-blue-400">${Math.round(k)}</p>
         </div>
         <div class="card-gradient p-4 rounded-xl border border-slate-700 text-center animate-fadeIn">
             <p class="text-[10px] text-slate-400">PROT (G)</p>
-            <p class="text-xl font-bold text-green-400">\${Math.round(p)}</p>
+            <p class="text-xl font-bold text-green-400">${Math.round(p)}</p>
         </div>
         <div class="card-gradient p-4 rounded-xl border border-slate-700 text-center animate-fadeIn">
             <p class="text-[10px] text-slate-400">GRASA (G)</p>
-            <p class="text-xl font-bold text-yellow-400">\${Math.round(f)}</p>
+            <p class="text-xl font-bold text-yellow-400">${Math.round(f)}</p>
         </div>
-    \`;
+    `;
 }
 
 let timerInt;
-window.startTimer = function(s) {
+window.startTimer = function (s) {
     const box = document.getElementById('timer-box');
     const disp = document.getElementById('timer-display');
+    if (!box || !disp) return;
     box.classList.remove('hidden');
     let t = s; clearInterval(timerInt);
     timerInt = setInterval(() => {
         let mins = Math.floor(t / 60); let secs = t % 60;
-        disp.innerText = \`\${mins}:\${secs < 10 ? '0' : ''}\${secs}\`;
+        disp.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
         if (t-- <= 0) { clearInterval(timerInt); box.classList.add('hidden'); }
     }, 1000);
 }
 
-window.toggleTimer = function() {
+window.toggleTimer = function () {
     const box = document.getElementById('timer-box');
-    if (!box.classList.contains('hidden')) box.classList.add('hidden'); else startTimer(90);
+    if (box && !box.classList.contains('hidden')) box.classList.add('hidden'); else startTimer(90);
 }
 
-window.switchTab = function(tab) {
+window.switchTab = function (tab) {
     ['workout', 'nutrition', 'config'].forEach(t => {
-        const view = document.getElementById(\`view-\${t}\`);
-        const nav = document.getElementById(\`nav-\${t}\`);
+        const view = document.getElementById(`view-${t}`);
+        const nav = document.getElementById(`nav-${t}`);
         if (view) view.classList.toggle('hidden', t !== tab);
         if (nav) nav.classList.toggle('text-blue-500', t === tab);
     });
 }
 
-window.resetApp = function() { if (confirm("¿Borrar todo?")) { localStorage.clear(); location.reload(); } }
+window.resetApp = function () { if (confirm("¿Borrar todo?")) { localStorage.clear(); location.reload(); } }
 
 // --- GOOGLE DRIVE SYNC ---
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '417195775471-vv2fo942f097s7stturpfjr2qkklp76e.apps.googleusercontent.com';
@@ -422,15 +427,17 @@ const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 let tokenClient;
 let accessToken = null;
 
-window.initGoogleTokenClient = function() {
+window.initGoogleTokenClient = function () {
     tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: SCOPES,
         callback: (tokenResponse) => {
             if (tokenResponse && tokenResponse.access_token) {
                 accessToken = tokenResponse.access_token;
-                document.getElementById('btn-login').classList.add('hidden');
-                document.getElementById('user-info').classList.remove('hidden');
+                const loginBtn = document.getElementById('btn-login');
+                const userInfo = document.getElementById('user-info');
+                if (loginBtn) loginBtn.classList.add('hidden');
+                if (userInfo) userInfo.classList.remove('hidden');
                 updateCloudStatus('online');
                 autoSync();
             }
@@ -438,21 +445,26 @@ window.initGoogleTokenClient = function() {
     });
 }
 
-window.handleAuthClick = function() {
-    tokenClient.requestAccessToken({ prompt: 'consent' });
+window.handleAuthClick = function () {
+    if (tokenClient) tokenClient.requestAccessToken({ prompt: 'consent' });
 }
 
-window.handleSignoutClick = function() {
-    google.accounts.oauth2.revoke(accessToken, () => {
-        accessToken = null;
-        document.getElementById('btn-login').classList.remove('hidden');
-        document.getElementById('user-info').classList.add('hidden');
-        updateCloudStatus('offline');
-    });
+window.handleSignoutClick = function () {
+    if (accessToken) {
+        google.accounts.oauth2.revoke(accessToken, () => {
+            accessToken = null;
+            const loginBtn = document.getElementById('btn-login');
+            const userInfo = document.getElementById('user-info');
+            if (loginBtn) loginBtn.classList.remove('hidden');
+            if (userInfo) userInfo.classList.add('hidden');
+            updateCloudStatus('offline');
+        });
+    }
 }
 
 function updateCloudStatus(status) {
     const icon = document.getElementById('cloud-status');
+    if (!icon) return;
     if (status === 'online') {
         icon.className = 'text-green-500';
         icon.innerHTML = '<i class="fas fa-cloud"></i>';
@@ -465,7 +477,7 @@ function updateCloudStatus(status) {
     }
 }
 
-window.autoSync = async function() {
+window.autoSync = async function () {
     if (!accessToken) return;
     updateCloudStatus('syncing');
     try {
@@ -490,16 +502,16 @@ window.autoSync = async function() {
 }
 
 async function findOrCreateFolder(name) {
-    const query = \`name = '\${name}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false\`;
-    const response = await fetch(\`https://www.googleapis.com/drive/v3/files?q=\${encodeURIComponent(query)}\`, {
-        headers: { 'Authorization': \`Bearer \${accessToken}\` }
+    const query = `name = '${name}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`;
+    const response = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
     });
     const result = await response.json();
     if (result.files && result.files.length > 0) return result.files[0].id;
 
     const createResp = await fetch('https://www.googleapis.com/drive/v3/files', {
         method: 'POST',
-        headers: { 'Authorization': \`Bearer \${accessToken}\`, 'Content-Type': 'application/json' },
+        headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: name, mimeType: 'application/vnd.google-apps.folder' })
     });
     const folder = await createResp.json();
@@ -507,16 +519,16 @@ async function findOrCreateFolder(name) {
 }
 
 async function findOrCreateFile(name, folderId) {
-    const query = \`name = '\${name}' and '\${folderId}' in parents and trashed = false\`;
-    const response = await fetch(\`https://www.googleapis.com/drive/v3/files?q=\${encodeURIComponent(query)}\`, {
-        headers: { 'Authorization': \`Bearer \${accessToken}\` }
+    const query = `name = '${name}' and '${folderId}' in parents and trashed = false`;
+    const response = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
     });
     const result = await response.json();
     if (result.files && result.files.length > 0) return result.files[0].id;
 
     const createResp = await fetch('https://www.googleapis.com/drive/v3/files', {
         method: 'POST',
-        headers: { 'Authorization': \`Bearer \${accessToken}\`, 'Content-Type': 'application/json' },
+        headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: name, parents: [folderId] })
     });
     const file = await createResp.json();
@@ -525,20 +537,20 @@ async function findOrCreateFile(name, folderId) {
 
 async function uploadData(fileId) {
     const data = { exercises, records };
-    await fetch(\`https://www.googleapis.com/upload/drive/v3/files/\${fileId}?uploadType=media\`, {
+    await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
         method: 'PATCH',
-        headers: { 'Authorization': \`Bearer \${accessToken}\` },
+        headers: { 'Authorization': `Bearer ${accessToken}` },
         body: JSON.stringify(data)
     });
 }
 
-window.loadFromCloud = async function() {
+window.loadFromCloud = async function () {
     if (!accessToken) return;
     updateCloudStatus('syncing');
     try {
         let fileId = localStorage.getItem('trainify_cloud_file_id');
-        const response = await fetch(\`https://www.googleapis.com/drive/v3/files/\${fileId}?alt=media\`, {
-            headers: { 'Authorization': \`Bearer \${accessToken}\` }
+        const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
         });
         const data = await response.json();
         if (data && data.exercises && data.records) {
@@ -557,7 +569,7 @@ window.loadFromCloud = async function() {
     }
 }
 
-window.syncToCloud = function() { autoSync(); }
+window.syncToCloud = function () { autoSync(); }
 
 document.addEventListener('DOMContentLoaded', initApp);
 import './style.css';
