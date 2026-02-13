@@ -1,77 +1,201 @@
-// --- DATA INICIAL ---
+import { supabase } from './supabase.js';
+import * as admin from './admin.js';
+
+// --- DATA INICIAL (Fallback) ---
 const defaultExercises = {
-    superior: [
-        { id: 1, name: "Press Declinado", coachNote: "Mantener escápulas retraídas y codos a 45°." }, { id: 2, name: "Tríceps Polea Alta" },
-        { id: 3, name: "Tríceps sobre cabeza" }, { id: 4, name: "Press Banca Plana", coachNote: "No despegar los pies del suelo, máxima estabilidad." },
-        { id: 5, name: "Banca Plana Mancuernas" }, { id: 6, name: "Pec Fly" },
-        { id: 7, name: "Mancuernas Lat" }
-    ],
-    inferior: [
-        { id: 100, name: "Sentadillas", coachNote: "Profundidad máxima sin perder la curvatura lumbar." }, { id: 101, name: "Prensa 45°" },
-        { id: 102, name: "Abductores" }, { id: 103, name: "Aductores" },
-        { id: 104, name: "Cuádriceps Sentado" }, { id: 105, name: "Curl Femoral" }
-    ],
-    espalda: [
-        { id: 200, name: "Pull Down", coachNote: "Tracciona con los codos, no con las manos." }, { id: 201, name: "Remo" },
-        { id: 202, name: "Face Pull" }, { id: 203, name: "Disco (Hombro)" },
-        { id: 204, name: "Press Militar" }
-    ]
+    "1": [{ id: 1, name: "Press Declinado" }],
 };
+const initialRecords = {};
 
-const initialRecords = {
-    "1": [{ kg: 45, reps: 8, date: "2024-05-01" }],
-    "2": [{ kg: 40, reps: 10, date: "2024-05-01" }],
-    "3": [{ kg: 35, reps: 12, date: "2024-05-01" }],
-    "4": [{ kg: 30, reps: 8, date: "2024-05-01" }],
-    "5": [{ kg: 30, reps: 12, date: "2024-05-01" }],
-    "6": [{ kg: 55, reps: 8, date: "2024-05-01" }],
-    "7": [{ kg: 12.5, reps: 8, date: "2024-05-01" }],
-    "100": [{ kg: 55, reps: 8, date: "2024-05-01" }],
-    "101": [{ kg: 130, reps: 8, date: "2024-05-01" }],
-    "102": [{ kg: 40, reps: 10, date: "2024-05-01" }],
-    "103": [{ kg: 25, reps: 10, date: "2024-05-01" }],
-    "104": [{ kg: 80, reps: 10, date: "2024-05-01" }],
-    "105": [{ kg: 80, reps: 8, date: "2024-05-01" }],
-    "200": [{ kg: 50, reps: 12, date: "2024-05-01" }],
-    "201": [{ kg: 45, reps: 8, date: "2024-05-01" }],
-    "202": [{ kg: 50, reps: 8, date: "2024-05-01" }],
-    "203": [{ kg: 10, reps: 10, date: "2024-05-01" }],
-    "204": [{ kg: 10, reps: 12, date: "2024-05-01" }]
-};
-
-let currentCategory = 'superior';
-let exercises, records;
+let currentCategory = null;
+let categories = [];
+let exercises = {};
+let records = {};
+let isAdmin = false;
+let adminClicks = 0;
 
 // --- INICIALIZACIÓN SEGURA ---
-window.initApp = function () {
+window.initApp = async function () {
     let fingerprint = localStorage.getItem('trainify_device_id');
     if (!fingerprint) {
         fingerprint = 'dev-' + Math.random().toString(36).substr(2, 9);
         localStorage.setItem('trainify_device_id', fingerprint);
-        console.log("New device registered:", fingerprint);
     }
 
+    // 1. Cargar Categorías Dinámicas
+    await loadCategories();
+
+    // 2. Cargar Datos Locales
     exercises = JSON.parse(localStorage.getItem('trainify_exercises')) || defaultExercises;
     records = JSON.parse(localStorage.getItem('trainify_records')) || initialRecords;
+
+    // 3. Sincronizar con la nube
+    await loadFromCloudSupabase();
+
     renderExercises();
+}
+
+window.checkAdminAccess = function () {
+    adminClicks++;
+    if (adminClicks >= 5) {
+        isAdmin = !isAdmin;
+        adminClicks = 0;
+        document.getElementById('admin-panel').classList.toggle('hidden', !isAdmin);
+        document.getElementById('admin-indicator').classList.toggle('hidden', !isAdmin);
+        if (isAdmin) renderAdminPanel();
+    }
+}
+
+async function loadCategories() {
+    try {
+        const { data, error } = await supabase.from('categories').select('*').order('display_order');
+        if (data && data.length > 0) {
+            categories = data;
+            if (!currentCategory) currentCategory = categories[0].id;
+        }
+    } catch (e) {
+        console.error('Error cargando categorías:', e);
+        categories = [{ id: 1, name: 'General' }];
+        currentCategory = 1;
+    }
+}
+
+function renderTabs() {
+    const container = document.getElementById('category-tabs');
+    if (!container) return;
+    container.innerHTML = '';
+    categories.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.onclick = () => changeCategory(cat.id);
+        btn.className = `nav-tab px-4 py-2 rounded-lg bg-slate-800 text-sm whitespace-nowrap ${currentCategory === cat.id ? 'active' : ''}`;
+        btn.textContent = cat.name;
+        container.appendChild(btn);
+    });
+}
+
+window.changeCategory = function (catId) {
+    currentCategory = catId;
+    renderExercises();
+}
+
+async function renderAdminPanel() {
+    const list = document.getElementById('admin-category-list');
+    const select = document.getElementById('admin-master-ex-cat');
+    if (!list || !select) return;
+
+    list.innerHTML = '';
+    select.innerHTML = '';
+
+    const cats = await admin.admin_loadCategories();
+    if (cats) {
+        cats.forEach(cat => {
+            const item = document.createElement('div');
+            item.className = 'flex items-center justify-between bg-slate-900/50 p-2 rounded border border-slate-800';
+            item.innerHTML = `
+                <span class="text-sm font-medium">${cat.name}</span>
+                <div class="flex gap-2 text-xs">
+                    <button onclick="deleteCategory(${cat.id})" class="text-red-400 p-1"><i class="fas fa-trash"></i></button>
+                </div>
+            `;
+            list.appendChild(item);
+
+            const opt = document.createElement('option');
+            opt.value = cat.id;
+            opt.textContent = cat.name;
+            select.appendChild(opt);
+        });
+    }
+    renderAdminMasterExercises();
+}
+
+window.renderAdminMasterExercises = async function () {
+    const selector = document.getElementById('admin-master-ex-cat');
+    if (!selector) return;
+    const catId = selector.value;
+    const list = document.getElementById('admin-master-ex-list');
+    if (!list || !catId) return;
+    list.innerHTML = '<p class="text-[10px] text-center text-slate-500 animate-pulse">Cargando...</p>';
+
+    const exs = await admin.admin_loadMasterExercises(catId);
+    list.innerHTML = '';
+    if (exs) {
+        exs.forEach(ex => {
+            const item = document.createElement('div');
+            item.className = 'flex items-center justify-between bg-slate-900/30 p-2 rounded border border-slate-800/50';
+            item.innerHTML = `
+                <div class="flex flex-col text-left">
+                    <span class="text-xs font-bold">${ex.name}</span>
+                    ${ex.coach_note ? `<span class="text-[9px] text-yellow-500/70 italic">${ex.coach_note}</span>` : ''}
+                </div>
+                <button onclick="deleteMasterExercise(${ex.id})" class="text-red-400 text-xs p-1"><i class="fas fa-times"></i></button>
+            `;
+            list.appendChild(item);
+        });
+    }
+}
+
+window.addNewMasterExercise = async function () {
+    const name = document.getElementById('master-ex-name').value.trim();
+    const note = document.getElementById('master-ex-note').value.trim();
+    const catId = document.getElementById('admin-master-ex-cat').value;
+
+    if (name && catId) {
+        const success = await admin.admin_saveMasterExercise(name, catId, note);
+        if (success) {
+            document.getElementById('master-ex-name').value = '';
+            document.getElementById('master-ex-note').value = '';
+            renderAdminMasterExercises();
+        }
+    }
+}
+
+window.deleteMasterExercise = async function (id) {
+    if (confirm('¿Borrar este ejercicio de la lista maestra?')) {
+        const success = await admin.admin_deleteMasterExercise(id);
+        if (success) renderAdminMasterExercises();
+    }
+}
+
+window.addNewCategory = async function () {
+    const input = document.getElementById('new-cat-name');
+    const name = input.value.trim();
+    if (name) {
+        const success = await admin.admin_saveCategory(name, categories.length + 1);
+        if (success) {
+            input.value = '';
+            await loadCategories();
+            renderAdminPanel();
+            renderExercises();
+        }
+    }
+}
+
+window.deleteCategory = async function (id) {
+    if (confirm('¿Borrar esta categoría?')) {
+        const success = await admin.admin_deleteCategory(id);
+        if (success) {
+            await loadCategories();
+            if (currentCategory === id) currentCategory = categories.length > 0 ? categories[0].id : null;
+            renderAdminPanel();
+            renderExercises();
+        }
+    }
 }
 
 // --- FUNCIONES CORE ---
 window.renderExercises = function () {
-    const tabs = document.querySelectorAll('.nav-tab');
-    if (tabs.length > 0) {
-        tabs.forEach(t => t.classList.remove('active'));
-        const activeTab = document.getElementById(`tab-${currentCategory}`);
-        if (activeTab) activeTab.classList.add('active');
-    }
-
+    renderTabs();
     const container = document.getElementById('exercise-list');
     if (!container) return;
     container.innerHTML = '';
-
     const today = new Date().toLocaleDateString('sv-SE');
+    if (!currentCategory || !exercises[currentCategory]) {
+        if (currentCategory) exercises[currentCategory] = [];
+        else return;
+    }
 
     exercises[currentCategory].forEach(ex => {
+        // ... (resto del código de renderizado igual)
         const history = records[ex.id] || [];
         const last = history[history.length - 1] || { kg: '', reps: '', date: '' };
         const setsToday = history.filter(r => r.date === today).length;
@@ -224,7 +348,7 @@ window.editNote = function (id, index) {
         record.note = newNote;
         localStorage.setItem('trainify_records', JSON.stringify(records));
         renderExercises();
-        autoSync();
+        autoSyncSupabase();
     }
 }
 
@@ -569,7 +693,60 @@ window.loadFromCloud = async function () {
     }
 }
 
-window.syncToCloud = function () { autoSync(); }
+// --- SUPABASE SYNC ---
+window.loadFromCloudSupabase = async function () {
+    const fingerprint = localStorage.getItem('trainify_device_id');
+    try {
+        const { data, error } = await supabase
+            .from('user_data')
+            .select('exercises, records')
+            .eq('device_id', fingerprint)
+            .single();
+
+        if (error) {
+            if (error.code === 'PGRST116') {
+                console.log('No cloud data for this device yet.');
+                return;
+            }
+            throw error;
+        }
+
+        if (data) {
+            exercises = data.exercises || exercises;
+            records = data.records || records;
+            localStorage.setItem('trainify_exercises', JSON.stringify(exercises));
+            localStorage.setItem('trainify_records', JSON.stringify(records));
+        }
+    } catch (err) {
+        console.error('Error loading from Supabase:', err);
+    }
+}
+
+window.autoSyncSupabase = async function () {
+    const fingerprint = localStorage.getItem('trainify_device_id');
+    updateCloudStatus('syncing');
+    try {
+        const { error } = await supabase
+            .from('user_data')
+            .upsert({
+                device_id: fingerprint,
+                exercises,
+                records,
+                updated_at: new Date().toISOString()
+            }, { onConflict: 'device_id' });
+
+        if (error) throw error;
+        updateCloudStatus('online');
+    } catch (err) {
+        console.error('Error syncing to Supabase:', err);
+        updateCloudStatus('offline');
+    }
+}
+
+window.syncToCloud = function () {
+    autoSync();         // Google Drive
+    autoSyncSupabase(); // Supabase
+}
 
 document.addEventListener('DOMContentLoaded', initApp);
 import './style.css';
