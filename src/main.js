@@ -1215,7 +1215,7 @@ async function renderAdminPanelInContainer() {
 window.resetApp = function () { if (confirm("¿Borrar todo?")) { localStorage.clear(); location.reload(); } }
 
 // --- GOOGLE DRIVE SYNC ---
-const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '417195775471-vv2fo942f097s7stturpfjr2qkklp76e.apps.googleusercontent.com';
+const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 let tokenClient;
 let accessToken = null;
