@@ -14,6 +14,17 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#020617">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script>
+        // Kill Service Workers from previous projects village
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                for (let registration of registrations) {
+                    registration.unregister();
+                    console.log("Old Service Worker Unregistered ✅");
+                }
+            });
+        }
+    </script>
 </head>
 
 <body class="pb-24">
