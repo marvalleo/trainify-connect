@@ -12,3 +12,7 @@ La aplicación es una Single Page Application (SPA) basada en vanilla HTML, CSS 
 ## Estándares de Estilo
 - **CSS**: Uso de Tailwind CSS (CDN) para el diseño base.
 - **Temas**: Esquema de colores oscuro (`bg-slate-950`) con acentos en azul (Carga) y púrpura (Volumen).
+
+## Idioma y Comunicación
+- **Documentación**: Todos los archivos del Memory Bank, planes de implementación y tareas deben mantenerse en **Español**.
+- **Interfaz**: La interfaz de usuario principal debe estar en **Español**.

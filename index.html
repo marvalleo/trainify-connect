@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#020617">
-    <script src="https://accounts.google.com/gsi/client" onload="initGoogleTokenClient()" async defer></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
 <body class="pb-24">
@@ -27,6 +27,12 @@
                 PRO - Sincronización Activa</p>
         </div>
         <div class="flex items-center gap-3">
+            <div id="role-switcher" class="hidden">
+                <button id="btn-role-toggle" onclick="toggleViewRole()"
+                    class="bg-purple-600/20 text-purple-400 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-purple-500/30 hover:bg-purple-600 hover:text-white transition-all">
+                    Ver como Alumno
+                </button>
+            </div>
             <div id="admin-indicator" class="hidden text-purple-400 animate-pulse text-[10px] font-bold">MODE ADMIN
             </div>
             <div id="cloud-status" class="text-slate-600">
@@ -43,8 +49,27 @@
         <span id="timer-display" class="font-mono font-bold">01:30</span>
     </div>
 
+    <!-- Supabase Auth Section -->
+    <div id="auth-section" class="p-4 space-y-4 max-w-md mx-auto mt-10">
+        <div class="card-gradient p-8 rounded-3xl border border-slate-800 text-center space-y-6">
+            <div
+                class="w-16 h-16 bg-purple-600/20 rounded-2xl flex items-center justify-center mx-auto text-purple-400 text-2xl">
+                <i class="fas fa-user-lock"></i>
+            </div>
+            <h2 class="text-xl font-black text-slate-100 uppercase tracking-tighter">Acceso Protegido</h2>
+            <p class="text-xs text-slate-500">Inicia sesión con tu cuenta de alumno o maestro para sincronizar tu
+                progreso v2.1.</p>
+            <div id="supabase-auth-ui" class="space-y-3">
+                <button onclick="loginWithGoogleSupabase()"
+                    class="w-full py-4 bg-white text-slate-900 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 hover:scale-[1.02] transition-transform">
+                    <img src="https://www.google.com/favicon.ico" class="w-4 h-4" alt="Google"> Entrar con Google
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Content -->
-    <main class="p-4 space-y-6">
+    <main id="app-content" class="p-4 space-y-6 hidden">
 
         <!-- VISTA ENTRENAMIENTO -->
         <div id="view-workout" class="space-y-6">
@@ -62,23 +87,34 @@
             <div id="exercise-list" class="space-y-4"></div>
         </div>
 
-        <!-- VISTA NUTRICIÓN -->
+        <!-- VISTA NUTRICIÓN / CATÁLOGO -->
         <div id="view-nutrition" class="hidden space-y-6">
-            <div class="card-gradient p-6 rounded-2xl border border-slate-700">
-                <h2 class="text-xl font-bold mb-4 text-blue-400 text-center">Calculadora de Macros</h2>
-                <div class="space-y-4">
-                    <input type="number" id="user-weight" placeholder="Peso (kg)"
-                        class="w-full p-3 rounded input-log text-left">
-                    <select id="user-goal" class="w-full p-3 rounded input-log text-left bg-slate-800">
-                        <option value="recomp">Recomposición (Mantenimiento)</option>
-                        <option value="cut">Definición (Déficit)</option>
-                        <option value="bulk">Volumen (Superávit)</option>
-                    </select>
-                    <button onclick="calculateMacros()"
-                        class="w-full py-3 bg-blue-600 rounded-xl font-bold uppercase">Calcular</button>
+            <!-- Contenido para Alumnos (Macros) -->
+            <div id="client-nutrition-view" class="space-y-6">
+                <div class="card-gradient p-6 rounded-2xl border border-slate-700">
+                    <h2 class="text-xl font-bold mb-4 text-blue-400 text-center">Calculadora de Macros</h2>
+                    <div class="space-y-4">
+                        <input type="number" id="user-weight" placeholder="Peso (kg)"
+                            class="w-full p-3 rounded input-log text-left">
+                        <select id="user-goal" class="w-full p-3 rounded input-log text-left bg-slate-800">
+                            <option value="recomp">Recomposición (Mantenimiento)</option>
+                            <option value="cut">Definición (Déficit)</option>
+                            <option value="bulk">Volumen (Superávit)</option>
+                        </select>
+                        <button onclick="calculateMacros()"
+                            class="w-full py-3 bg-blue-600 rounded-xl font-bold uppercase">Calcular</button>
+                    </div>
                 </div>
+                <div id="macro-results" class="hidden grid grid-cols-2 gap-4"></div>
             </div>
-            <div id="macro-results" class="hidden grid grid-cols-2 gap-4"></div>
+
+            <!-- Contenido para Maestro (Catálogo) -->
+            <div id="master-catalog-view" class="hidden space-y-6">
+                <h2 class="text-xl font-black text-purple-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                    <i class="fas fa-dumbbell"></i> Gestión del Catálogo
+                </h2>
+                <div id="catalog-content"></div>
+            </div>
         </div>
 
         <!-- VISTA CONFIGURACIÓN -->
@@ -104,44 +140,58 @@
 
                 <hr class="border-slate-800">
 
-                <!-- Gestión de Ejercicios Maestros -->
+                <!-- Gestión de Alumnos -->
                 <div class="space-y-3">
-                    <h3 class="text-sm font-bold text-slate-300 uppercase tracking-widest text-center">Lista Maestra de
-                        Ejercicios</h3>
-                    <div class="flex gap-2">
-                        <select id="admin-master-ex-cat"
-                            class="bg-slate-800 p-2 rounded flex-1 border border-slate-700 text-xs mb-2"
-                            onchange="renderAdminMasterExercises()"></select>
-                    </div>
-                    <div id="admin-master-ex-list" class="space-y-2 max-h-48 overflow-y-auto pr-1 mb-3"></div>
-                    <div
-                        class="flex flex-col gap-2 bg-slate-900 px-3 py-4 rounded-xl border border-slate-800 shadow-inner">
-                        <input type="text" id="master-ex-name" placeholder="Nombre (ej: Press Banca)"
-                            class="p-2 rounded bg-slate-800 text-xs border border-slate-700">
-                        <input type="text" id="master-ex-note" placeholder="Nota técnica (opcional)"
-                            class="p-2 rounded bg-slate-800 text-[10px] border border-slate-700">
-                        <button onclick="addNewMasterExercise()"
-                            class="bg-blue-600 py-2 rounded-lg font-bold text-xs text-white uppercase tracking-widest">Añadir
-                            a Catálogo</button>
+                    <h3 class="text-sm font-bold text-slate-300 uppercase tracking-widest text-center">Gestión de
+                        Alumnos</h3>
+                    <div id="admin-student-list" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+                    <div class="flex gap-2 bg-slate-900 p-3 rounded-xl border border-slate-800">
+                        <input type="text" id="new-student-name" placeholder="Nombre del Alumno"
+                            class="flex-1 p-2 rounded bg-slate-800 text-xs border border-slate-700">
+                        <button onclick="addNewStudent()"
+                            class="bg-green-600 px-4 py-2 rounded-lg font-bold text-xs text-white">AÑADIR</button>
                     </div>
                 </div>
             </div>
+
+            <!-- Panel de Alumno Seleccionado (Solo Admin) -->
+            <div id="admin-student-detail"
+                class="hidden card-gradient p-6 rounded-2xl border-2 border-blue-500/50 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 id="admin-student-name-title" class="text-lg font-bold text-blue-400">Alumno: ---</h2>
+                    <button onclick="closeStudentDetail()" class="text-slate-500 hover:text-white"><i
+                            class="fas fa-times"></i></button>
+                </div>
+                <div class="space-y-3">
+                    <p class="text-[10px] text-slate-400 uppercase font-bold">Asignar Ejercicio de Catálogo</p>
+                    <div class="flex flex-col gap-2">
+                        <select id="student-assign-cat" class="bg-slate-800 p-2 rounded text-xs border border-slate-700"
+                            onchange="loadMasterExercisesForAssignment()"></select>
+                        <select id="student-assign-ex"
+                            class="bg-slate-800 p-2 rounded text-xs border border-slate-700"></select>
+                        <button onclick="assignExerciseToStudent()"
+                            class="bg-blue-600 py-2 rounded-lg font-bold text-xs text-white">ASIGNAR A RUTINA</button>
+                    </div>
+                </div>
+                <div class="pt-4 border-t border-slate-800">
+                    <p class="text-[10px] text-slate-400 uppercase font-bold mb-2">Rutina Actual</p>
+                    <div id="admin-student-routine" class="space-y-2"></div>
+                </div>
+            </div>
+
             <div class="card-gradient p-6 rounded-2xl border border-slate-700">
-                <h2 class="text-xl font-bold mb-4 text-green-400">Añadir Ejercicio</h2>
+                <h2 class="text-xl font-bold mb-4 text-green-400">Añadir Ejercicio Individual</h2>
                 <div class="space-y-3">
                     <input type="text" id="new-ex-name" placeholder="Nombre del ejercicio"
                         class="w-full p-3 rounded input-log text-left">
                     <select id="new-ex-cat" class="w-full p-3 rounded input-log text-left bg-slate-800">
-                        <option value="superior">Tren Superior</option>
-                        <option value="inferior">Tren Inferior</option>
-                        <option value="espalda">Espalda/Hombro</option>
+                        <!-- Categorías dinámicas inyectadas aquí -->
                     </select>
-                    <button onclick="addExercise()"
-                        class="w-full py-2 bg-green-600 rounded-lg font-bold">AÑADIR</button>
+                    <button onclick="addExercise()" class="w-full py-2 bg-green-600 rounded-lg font-bold">AÑADIR A MI
+                        LISTA</button>
                 </div>
             </div>
-
-            <div class="card-gradient p-6 rounded-2xl border border-slate-700 text-center">
+            <div class="card-gradient p-6 rounded-2xl border border-slate-700 text-center export-feature">
                 <h2 class="text-xl font-bold mb-4 text-purple-400">Respaldo de Datos</h2>
 
                 <div id="google-login-section" class="mb-6 p-4 bg-slate-900/50 rounded-xl border border-slate-800">
