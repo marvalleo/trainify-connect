@@ -15,12 +15,17 @@
     <meta name="theme-color" content="#020617">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>
-        // Kill Service Workers from previous projects village
+        // Nuclear Clean: Unregister all Service Workers from previous projects village
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(registrations => {
-                for (let registration of registrations) {
-                    registration.unregister();
-                    console.log("Old Service Worker Unregistered ✅");
+                if (registrations.length > 0) {
+                    for (let registration of registrations) {
+                        registration.unregister().then(() => {
+                            console.log("Old Service Worker Unregistered ✅");
+                        });
+                    }
+                    // Force a hard reload once cleaned to let the original site take over
+                    setTimeout(() => { window.location.reload(true); }, 500);
                 }
             });
         }
